@@ -18,6 +18,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	log.Println("DB_NAME:", os.Getenv("DB_NAME"))
+
 	// Connect database
 	db, err := database.Connect()
 	if err != nil {
