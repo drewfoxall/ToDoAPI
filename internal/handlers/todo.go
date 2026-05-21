@@ -40,3 +40,75 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, todo)
 }
+
+// GET /todos/:id
+func (h *TodoHandler) GetTodoByID(c *gin.Context) {
+	id := c.Param("id")
+
+	var todo models.Todo
+
+	result := h.DB.First(&todo, id)
+
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Todo not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, todo)
+}
+
+//Update /Todos/:id
+
+func (h *TodoHandler) UpdateTodo(c *gin.Context) {
+	id := c.Param("id")
+
+	var todo models.Todo
+
+	result := h.DB.First(&todo, id)
+
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Todo Not found",
+		})
+		return
+	}
+	var updatedTodo models.Todo
+
+	if err := c.ShouldBindJSON(&updatedTodo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	todo.Title = updatedTodo.Title
+	todo.Completed = updatedTodo.Completed
+
+	h.DB.Save(&todo)
+
+	c.JSON(http.StatusOK, todo)
+}
+
+// Delete Todos
+func (h *TodoHandler) DeleteTodo(c *gin.Context) {
+
+	id := c.Param("id")
+
+	var todo models.Todo
+
+	result := h.DB.First(&todo, id)
+
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Todo not found",
+		})
+		return
+	}
+
+	h.DB.Delete(&todo)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Todo deleted successfully",
+	})
+}

@@ -10,5 +10,8 @@ func RegisterTodoRoutes(router *gin.Engine, db *gorm.DB) {
 	handler := handlers.NewTodoHandler(db)
 
 	router.GET("/todos", handler.GetTodos)
+	router.GET("/todos/:id", handler.GetTodoByID)
 	router.POST("/todos", handler.CreateTodo)
+	router.PUT("/todos/:id", handler.UpdateTodo)
+	router.DELETE("/todos/:id", handler.DeleteTodo)
 }
