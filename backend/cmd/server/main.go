@@ -69,7 +69,10 @@ func main() {
 	}
 
 	log.Println("Starting server on port", port)
-
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.Todo{},
+	)
 	err = router.Run(":" + port)
 	if err != nil {
 		log.Fatal("Failed to start server:", err)
