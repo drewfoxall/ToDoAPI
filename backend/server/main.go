@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/xiaoan1122/todo-api/internal/database"
+	"github.com/xiaoan1122/todo-api/internal/middleware"
 	"github.com/xiaoan1122/todo-api/internal/models"
 	"github.com/xiaoan1122/todo-api/internal/routes"
 )
@@ -34,6 +35,7 @@ func main() {
 
 	// Create Gin router
 	router := gin.Default()
+	router.Use(cors.New(middleware.Cors()))
 
 	// Health check route
 	router.GET("/health", func(c *gin.Context) {
