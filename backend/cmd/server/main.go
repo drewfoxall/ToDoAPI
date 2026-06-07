@@ -60,6 +60,7 @@ func main() {
 
 	log.Println("Registering routes...")
 
+	routes.RegisterAuthRoutes(router, db)
 	routes.RegisterTodoRoutes(router, db)
 
 	// Start server
