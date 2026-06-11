@@ -7,7 +7,6 @@ import (
 )
 
 func RegisterAuthRoutes(router *gin.Engine, db *gorm.DB) {
-
 	authHandler := handlers.NewAuthHandler(db)
 
 	router.POST("/register", authHandler.Register)

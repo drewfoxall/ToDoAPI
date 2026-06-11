@@ -36,6 +36,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// Extract claims from JWT
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid token claims",
+			})
+			c.Abort()
+			return
+		}
+
+		// Store user information in Gin context
+		c.Set("userID", uint(claims["user_id"].(float64)))
+		c.Set("email", claims["email"])
+
 		c.Next()
 	}
 }

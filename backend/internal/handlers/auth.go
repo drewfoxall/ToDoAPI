@@ -112,7 +112,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	// Create user
 	user := models.User{
-		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
 	}

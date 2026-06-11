@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,15 +19,36 @@ func NewTodoHandler(db *gorm.DB) *TodoHandler {
 
 // GET /todos
 func (h *TodoHandler) GetTodos(c *gin.Context) {
+
+	userID, exists := c.Get("userID")
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
+
 	var todos []models.Todo
 
-	h.DB.Find(&todos)
+	h.DB.Where("user_id = ?", userID).Find(&todos)
 
 	c.JSON(http.StatusOK, todos)
 }
 
 // POST /todos
 func (h *TodoHandler) CreateTodo(c *gin.Context) {
+
+	userID, exists := c.Get("userID")
+	log.Println("Creating todo for user:", userID)
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
+
 	var todo models.Todo
 
 	if err := c.ShouldBindJSON(&todo); err != nil {
@@ -36,6 +58,9 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 		return
 	}
 
+	todo.UserID = userID.(uint)
+	log.Println("Todo.UserID =", todo.UserID)
+
 	h.DB.Create(&todo)
 
 	c.JSON(http.StatusCreated, todo)
@@ -43,11 +68,25 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 
 // GET /todos/:id
 func (h *TodoHandler) GetTodoByID(c *gin.Context) {
+
+	userID, exists := c.Get("userID")
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
+
 	id := c.Param("id")
 
 	var todo models.Todo
 
-	result := h.DB.First(&todo, id)
+	result := h.DB.Where(
+		"id = ? AND user_id = ?",
+		id,
+		userID,
+	).First(&todo)
 
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -59,21 +98,35 @@ func (h *TodoHandler) GetTodoByID(c *gin.Context) {
 	c.JSON(http.StatusOK, todo)
 }
 
-//Update /Todos/:id
-
+// PUT /todos/:id
 func (h *TodoHandler) UpdateTodo(c *gin.Context) {
+
+	userID, exists := c.Get("userID")
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
+
 	id := c.Param("id")
 
 	var todo models.Todo
 
-	result := h.DB.First(&todo, id)
+	result := h.DB.Where(
+		"id = ? AND user_id = ?",
+		id,
+		userID,
+	).First(&todo)
 
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Todo Not found",
+			"error": "Todo not found",
 		})
 		return
 	}
+
 	var updatedTodo models.Todo
 
 	if err := c.ShouldBindJSON(&updatedTodo); err != nil {
@@ -82,22 +135,35 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 		})
 		return
 	}
+
 	todo.Title = updatedTodo.Title
-	todo.Completed = updatedTodo.Completed
 
 	h.DB.Save(&todo)
 
 	c.JSON(http.StatusOK, todo)
 }
 
-// Delete Todos
+// DELETE /todos/:id
 func (h *TodoHandler) DeleteTodo(c *gin.Context) {
+
+	userID, exists := c.Get("userID")
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
 
 	id := c.Param("id")
 
 	var todo models.Todo
 
-	result := h.DB.First(&todo, id)
+	result := h.DB.Where(
+		"id = ? AND user_id = ?",
+		id,
+		userID,
+	).First(&todo)
 
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
