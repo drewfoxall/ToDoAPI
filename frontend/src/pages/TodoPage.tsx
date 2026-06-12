@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Todo {
   ID: number;
@@ -7,6 +8,7 @@ interface Todo {
 }
 
 export default function TodoPage() {
+  const navigate = useNavigate();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
@@ -25,6 +27,10 @@ export default function TodoPage() {
     setTodos(data);
   }
 
+  async function logout() {
+    localStorage.removeItem("token");
+    navigate("/login");
+  }
   async function createTodo(e: React.FormEvent) {
     e.preventDefault();
 
@@ -58,6 +64,10 @@ export default function TodoPage() {
     <div>
       <h1>My Todos</h1>
 
+
+      <button onClick={logout}>
+        Logout
+      </button>
       <form onSubmit={createTodo}>
         <input
           type="text"
@@ -77,7 +87,7 @@ export default function TodoPage() {
           Create Todo
         </button>
       </form>
-
+      
       <ul>
         {todos.map((todo) => (
           <li key={todo.ID}>
