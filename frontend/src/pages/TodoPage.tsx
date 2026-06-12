@@ -12,6 +12,9 @@ export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+const [editTitle, setEditTitle] = useState("");
+const [editType, setEditType] = useState("");
 
   async function fetchTodos() {
     const token = localStorage.getItem("token");
@@ -27,7 +30,48 @@ export default function TodoPage() {
     setTodos(data);
   }
 
-  async function logout() {
+  async function deleteTodo(id: number) {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(
+    `http://localhost:8080/todos/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (response.ok) {
+    fetchTodos();
+  }
+}
+
+  async function updateTodo(id: number) {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(
+    `http://localhost:8080/todos/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: editTitle,
+        type: editType,
+      }),
+    }
+  );
+
+  if (response.ok) {
+    setEditingId(null);
+    fetchTodos();
+  }
+}
+  function logout() {
     localStorage.removeItem("token");
     navigate("/login");
   }
@@ -89,12 +133,60 @@ export default function TodoPage() {
       </form>
       
       <ul>
-        {todos.map((todo) => (
-          <li key={todo.ID}>
-            {todo.title} ({todo.type})
-          </li>
-        ))}
-      </ul>
+  {todos.map((todo) => (
+    <li key={todo.ID}>
+      {editingId === todo.ID ? (
+        <>
+          <input
+            value={editTitle}
+            onChange={(e) =>
+              setEditTitle(e.target.value)
+            }
+          />
+
+          <input
+            value={editType}
+            onChange={(e) =>
+              setEditType(e.target.value)
+            }
+          />
+
+          <button
+            onClick={() => updateTodo(todo.ID)}
+          >
+            Save
+          </button>
+
+          <button
+            onClick={() => setEditingId(null)}
+          >
+            Cancel
+          </button>
+        </>
+      ) : (
+        <>
+          {todo.title} ({todo.type})
+
+          <button
+            onClick={() => {
+              setEditingId(todo.ID);
+              setEditTitle(todo.title);
+              setEditType(todo.type);
+            }}
+          >
+            Edit
+          </button>
+
+          <button
+            onClick={() => deleteTodo(todo.ID)}
+          >
+            Delete
+          </button>
+        </>
+      )}
+    </li>
+  ))}
+</ul>
     </div>
   );
 }

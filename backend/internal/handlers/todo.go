@@ -137,6 +137,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	}
 
 	todo.Title = updatedTodo.Title
+	todo.Type = updatedTodo.Type
 
 	h.DB.Save(&todo)
 
