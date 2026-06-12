@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Register() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:8080/login", {
+    const response = await fetch("http://localhost:8080/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        username,
         email,
         password,
       }),
@@ -24,8 +26,8 @@ export default function Login() {
     const data = await response.json();
 
     if (response.ok) {
-      localStorage.setItem("token", data.token);
-      navigate("/todos");
+      alert("Registration successful");
+      navigate("/login");
     } else {
       alert(data.error);
     }
@@ -33,9 +35,16 @@ export default function Login() {
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1>Register</h1>
 
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleRegister}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
         <input
           type="email"
           placeholder="Email"
@@ -49,17 +58,11 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-<p>
-  Don't have an account?
-</p>
 
-<button onClick={() => navigate("/register")}>
-  Register
-</button>
-        <button type="submit">Login</button>
+        <button type="submit">
+          Register
+        </button>
       </form>
     </div>
-    
   );
-  
 }
