@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface Todo {
-  ID: number;
-  title: string;
-  type: string;
-}
+import TodoForm from "../components/TodoForm";
+import TodoItem from "../components/TodoItem";
+
+import type { Todo } from "../types/todo";
 
 export default function TodoPage() {
   const navigate = useNavigate();
+
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
+
   const [editingId, setEditingId] = useState<number | null>(null);
-const [editTitle, setEditTitle] = useState("");
-const [editType, setEditType] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editType, setEditType] = useState("");
 
   async function fetchTodos() {
     const token = localStorage.getItem("token");
@@ -30,51 +31,6 @@ const [editType, setEditType] = useState("");
     setTodos(data);
   }
 
-  async function deleteTodo(id: number) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(
-    `http://localhost:8080/todos/${id}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (response.ok) {
-    fetchTodos();
-  }
-}
-
-  async function updateTodo(id: number) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(
-    `http://localhost:8080/todos/${id}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title: editTitle,
-        type: editType,
-      }),
-    }
-  );
-
-  if (response.ok) {
-    setEditingId(null);
-    fetchTodos();
-  }
-}
-  function logout() {
-    localStorage.removeItem("token");
-    navigate("/login");
-  }
   async function createTodo(e: React.FormEvent) {
     e.preventDefault();
 
@@ -95,9 +51,55 @@ const [editType, setEditType] = useState("");
     if (response.ok) {
       setTitle("");
       setType("");
-
       fetchTodos();
     }
+  }
+
+  async function updateTodo(id: number) {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      `http://localhost:8080/todos/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editTitle,
+          type: editType,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      setEditingId(null);
+      fetchTodos();
+    }
+  }
+
+  async function deleteTodo(id: number) {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      `http://localhost:8080/todos/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      fetchTodos();
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem("token");
+    navigate("/login");
   }
 
   useEffect(() => {
@@ -108,85 +110,34 @@ const [editType, setEditType] = useState("");
     <div>
       <h1>My Todos</h1>
 
-
       <button onClick={logout}>
         Logout
       </button>
-      <form onSubmit={createTodo}>
-        <input
-          type="text"
-          placeholder="Todo title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
 
-        <input
-          type="text"
-          placeholder="Todo type"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-        />
+      <TodoForm
+        title={title}
+        type={type}
+        setTitle={setTitle}
+        setType={setType}
+        createTodo={createTodo}
+      />
 
-        <button type="submit">
-          Create Todo
-        </button>
-      </form>
-      
       <ul>
-  {todos.map((todo) => (
-    <li key={todo.ID}>
-      {editingId === todo.ID ? (
-        <>
-          <input
-            value={editTitle}
-            onChange={(e) =>
-              setEditTitle(e.target.value)
-            }
+        {todos.map((todo) => (
+          <TodoItem
+            key={todo.ID}
+            todo={todo}
+            editingId={editingId}
+            editTitle={editTitle}
+            editType={editType}
+            setEditingId={setEditingId}
+            setEditTitle={setEditTitle}
+            setEditType={setEditType}
+            updateTodo={updateTodo}
+            deleteTodo={deleteTodo}
           />
-
-          <input
-            value={editType}
-            onChange={(e) =>
-              setEditType(e.target.value)
-            }
-          />
-
-          <button
-            onClick={() => updateTodo(todo.ID)}
-          >
-            Save
-          </button>
-
-          <button
-            onClick={() => setEditingId(null)}
-          >
-            Cancel
-          </button>
-        </>
-      ) : (
-        <>
-          {todo.title} ({todo.type})
-
-          <button
-            onClick={() => {
-              setEditingId(todo.ID);
-              setEditTitle(todo.title);
-              setEditType(todo.type);
-            }}
-          >
-            Edit
-          </button>
-
-          <button
-            onClick={() => deleteTodo(todo.ID)}
-          >
-            Delete
-          </button>
-        </>
-      )}
-    </li>
-  ))}
-</ul>
+        ))}
+      </ul>
     </div>
   );
 }
